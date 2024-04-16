@@ -169,10 +169,10 @@ osMacDatabase::ReadDataFromResourceFork(const char* label, void* entry, int* ent
 	
 	try
 	{
-		//¥ Start by terminating the entry in case anything goes wrong
+		//Â¥ Start by terminating the entry in case anything goes wrong
 		((char*) entry)[0] = 0;
 		
-		//¥ Open the resource file (must be closed later)
+		//Â¥ Open the resource file (must be closed later)
 		mPrefsFileRefNum = FSpOpenResFile(&mPrefsFileSpec, fsRdWrPerm);
 		if (mPrefsFileRefNum == -1)
 		{
@@ -184,7 +184,7 @@ osMacDatabase::ReadDataFromResourceFork(const char* label, void* entry, int* ent
 			}
 		}
 		
-		//¥ Switch to the prefs file's resource fork
+		//Â¥ Switch to the prefs file's resource fork
 		UseResFile(mPrefsFileRefNum);
 		err = ResError();
 		if (err)
@@ -192,11 +192,11 @@ osMacDatabase::ReadDataFromResourceFork(const char* label, void* entry, int* ent
 			throw (CDatabaseErr("Could not switch to database resource file.", err));
 		}
 		
-		//¥ Convert the name string from a c to a pascal style string
+		//Â¥ Convert the name string from a c to a pascal style string
 		Str255	labelPStr = "\p";
 		CPstrcpy(labelPStr, (char*) label);
 
-		//¥ See if this resource exists in the prefs file database
+		//Â¥ See if this resource exists in the prefs file database
 		Handle	dataHandle = nil;
 		dataHandle = Get1NamedResource(kMacDatabaseResourceType, labelPStr);
 		err = ResError();
@@ -213,17 +213,17 @@ osMacDatabase::ReadDataFromResourceFork(const char* label, void* entry, int* ent
 		
 		ASSERT(dataHandle);		
 		
-		//¥ Lock the handle down in memory
+		//Â¥ Lock the handle down in memory
 		HLock(dataHandle);
 		
-		//¥ Copy the data to the buffer passed in by the database user
+		//Â¥ Copy the data to the buffer passed in by the database user
 		//   Note! Only copies up to as many bytes as specified by entrylen initially, returns the 
 		//		   actual size of the data in entrylen on completion 
 		int	dataSize = GetHandleSize(dataHandle);
 		*entrylen = (*entrylen < dataSize) ? *entrylen : dataSize;
 		BlockMove(*dataHandle, entry, *entrylen);
 
-		//¥ Unlock the memory handle
+		//Â¥ Unlock the memory handle
 		HUnlock(dataHandle);
 				
 		success = true;
@@ -239,7 +239,7 @@ osMacDatabase::ReadDataFromResourceFork(const char* label, void* entry, int* ent
 	CloseResFile(mPrefsFileRefNum);
 	mPrefsFileRefNum = -1;
 	
-	//¥ Restore the original resource file
+	//Â¥ Restore the original resource file
 	UseResFile(saveResFile);
 
 	return success;
@@ -267,7 +267,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 	
 	try
 	{
-		//¥ Open the resource file (must be closed later in destructor)
+		//Â¥ Open the resource file (must be closed later in destructor)
 		mPrefsFileRefNum = FSpOpenResFile(&mPrefsFileSpec, fsRdWrPerm);
 		if (mPrefsFileRefNum == -1)
 		{
@@ -279,7 +279,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			}
 		}
 		
-		//¥ Switch to the prefs file's resource fork
+		//Â¥ Switch to the prefs file's resource fork
 		UseResFile(mPrefsFileRefNum);
 		err = ResError();
 		if (err)
@@ -287,11 +287,11 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			throw (CDatabaseErr("Could not switch to database resource file.", err));
 		}
 		
-		//¥ Convert the name string from a c to a pascal style string
+		//Â¥ Convert the name string from a c to a pascal style string
 		Str255	labelPStr = "\p";
 		CPstrcpy(labelPStr, (char*) label);
 
-		//¥ See if this resource already exists in the prefs file database
+		//Â¥ See if this resource already exists in the prefs file database
 		Handle	oldHandle = nil;
 		oldHandle = Get1NamedResource(kMacDatabaseResourceType, labelPStr);
 		err = ResError();
@@ -302,7 +302,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 		
 		if (oldHandle != nil)	// If this resource exists, then delete it
 		{
-			//¥ Now delete the old resource
+			//Â¥ Now delete the old resource
 			RemoveResource(oldHandle);
 			err = ResError();
 			if (err)
@@ -310,7 +310,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 				throw (CDatabaseErr("Could not get delete previously existing database entry", err));
 			}
 			
-			//¥ Write the changes to disk
+			//Â¥ Write the changes to disk
 			UpdateResFile(mPrefsFileRefNum);
 			err = ResError();
 			if (err)
@@ -319,7 +319,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			}
 		}
 
-		//¥ Create a handle to store the entry in
+		//Â¥ Create a handle to store the entry in
 		Handle	entryH = nil;
 		entryH = NewHandleClear(entrylen);
 		if (!entryH)
@@ -327,17 +327,17 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			throw (CDatabaseErr("Could not allocate memory for new database entry", nilHandleErr));
 		}
 		
-		//¥ Lock the handle down in memory
+		//Â¥ Lock the handle down in memory
 		HLock(entryH);
 		
-		//¥ Copy the new entry data to a handle to be added as a named resource
+		//Â¥ Copy the new entry data to a handle to be added as a named resource
 		BlockMove(entry, *entryH, entrylen);
 
-		//¥ Get a unique ID for this resource
+		//Â¥ Get a unique ID for this resource
 		short entryResID = 0;
 		entryResID = Unique1ID(kMacDatabaseResourceType);	
 	
-		//¥ Add the resource to the database
+		//Â¥ Add the resource to the database
 		AddResource(entryH, kMacDatabaseResourceType, entryResID, labelPStr);
 		err = ResError();
 		if (err)
@@ -345,7 +345,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			throw (CDatabaseErr("Could not add entry to mac database resource file.", err));
 		}
 		
-		//¥ Write the changes to disk
+		//Â¥ Write the changes to disk
 		UpdateResFile(mPrefsFileRefNum);
 		err = ResError();
 		if (err)
@@ -353,10 +353,10 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 			throw (CDatabaseErr("Could add write mac database resource to disk.", err));
 		}
 		
-		//¥ Unlock the memory handle
+		//Â¥ Unlock the memory handle
 		HUnlock(entryH);
 
-		//¥ Dispose of the memory handle
+		//Â¥ Dispose of the memory handle
 		DisposeHandle(entryH);
 		
 		success = true;
@@ -372,7 +372,7 @@ osMacDatabase::WriteDataToResourceFork(const char* label, void* entry, int entry
 	CloseResFile(mPrefsFileRefNum);
 	mPrefsFileRefNum = -1;
 	
-	//¥ Restore the original resource file
+	//Â¥ Restore the original resource file
 	UseResFile(saveResFile);
 
 	return success;
@@ -427,7 +427,7 @@ osMacDatabase::FillOutPrefsInfo(void)
 	OSErr				theErr	= noErr;
 	bool				success = false;
 	
-	//¥ Get information about the current process (this app)
+	//Â¥ Get information about the current process (this app)
 	theErr = GetCurrentProcess(&thePSN);
 	thePIR.processName = nil;
 	thePIR.processInfoLength = sizeof(ProcessInfoRec);
@@ -436,7 +436,7 @@ osMacDatabase::FillOutPrefsInfo(void)
 	theErr = GetProcessInformation(&thePSN, &thePIR);
 	if (!theErr)
 	{
-		//¥ Make sure the constructed name will not overflow the maximum file/folder length
+		//Â¥ Make sure the constructed name will not overflow the maximum file/folder length
 		Str31	fileTag 		= "\p Prefs";
 		Str31	folderTag 		= "\p Preferences";
 		int 	fileTagLength 	= (int) fileTag[0];
@@ -447,7 +447,7 @@ osMacDatabase::FillOutPrefsInfo(void)
 		
 		
 		
-		//¥ Shorten the app name length until it will fit into the file name
+		//Â¥ Shorten the app name length until it will fit into the file name
 		Pstrcpy(tempAppName, appSpec.name);		
 		tempAppNameLength = tempAppName[0];
 		while (fileTagLength + tempAppNameLength >= _MAX_FNAME)
@@ -456,14 +456,14 @@ osMacDatabase::FillOutPrefsInfo(void)
 		}
 		tempAppName[0] = tempAppNameLength;
 		
-		//¥ Construct the Prefs File Name
+		//Â¥ Construct the Prefs File Name
 		Pstrcpy(mPrefsFileName, tempAppName);
 		Pstrcat(mPrefsFileName, fileTag);
 		
 		
 		
 		
-		//¥ Shorten the app name length until it will fit into the folder name
+		//Â¥ Shorten the app name length until it will fit into the folder name
 		Pstrcpy(tempAppName, appSpec.name);		
 		tempAppNameLength = tempAppName[0];
 		while (folderTagLength + tempAppNameLength >= _MAX_DIR)
@@ -472,7 +472,7 @@ osMacDatabase::FillOutPrefsInfo(void)
 		}
 		tempAppName[0] = tempAppNameLength;
 
-		//¥ Construct the Prefs Folder Name
+		//Â¥ Construct the Prefs Folder Name
 		Pstrcpy(mPrefsFolderName, tempAppName);
 		Pstrcat(mPrefsFolderName, folderTag);
 
@@ -493,10 +493,10 @@ osMacDatabase::InitPrefsFile(void)
 		
 	try
 	{
-		//¥	Find the System "Preferences" folder
+		//Â¥	Find the System "Preferences" folder
 		theErr = FindFolder(kOnSystemDisk, kPreferencesFolderType, kCreateFolder, &prefVRefNum, &prefDirID);
 		
-		//¥	Find (or make) the app prefs folder in the Preferences folder
+		//Â¥	Find (or make) the app prefs folder in the Preferences folder
 		mPrefsFileSpec.vRefNum 	= prefVRefNum;
 		mPrefsFileSpec.parID	= prefDirID;
 		Pstrcpy(mPrefsFileSpec.name, mPrefsFolderName);
@@ -510,7 +510,7 @@ osMacDatabase::InitPrefsFile(void)
 				throw (CDatabaseErr("An Error occurred getting at the preferences folder", theErr));
 			}
 			
-			//¥	Create the app prefs folder in the Preferences folder
+			//Â¥	Create the app prefs folder in the Preferences folder
 			theErr = FSpDirCreate(&mPrefsFileSpec, smCurrentScript, &newDirID);
 			
 			if (theErr)
@@ -521,13 +521,13 @@ osMacDatabase::InitPrefsFile(void)
 			mPrefsFileSpec.parID = newDirID;
 		}
 
-		//¥	At this point we should have a valid FSSpec for items inside the app prefs folder
+		//Â¥	At this point we should have a valid FSSpec for items inside the app prefs folder
 		Pstrcpy(mPrefsFileSpec.name, mPrefsFileName);
 
-		//¥	If we make it here OK, create Preferences file if necessary
+		//Â¥	If we make it here OK, create Preferences file if necessary
 		theErr = FSpCreate(&mPrefsFileSpec, mAppSignature, mPrefsFileType, smCurrentScript);
 
-		//¥ If there was no error, then file did not already exist,
+		//Â¥ If there was no error, then file did not already exist,
 		//   and we must create the resource map in the file
 		if (!theErr) 
 		{
