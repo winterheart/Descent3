@@ -1827,11 +1827,6 @@ void FlushDataCache() {
   // This must be done before we free polymodels
   FreeAllObjects();
 
-#ifdef EDITOR
-  if (Network_up)
-    return;
-#endif
-
   int texfreed = 0;
   int modelsfreed = 0;
   int soundsfreed = 0;

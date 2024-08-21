@@ -30,7 +30,6 @@
 #define TEMP_LOCAL_TABLE "Tablr.loc"
 
 #define NET_TABLE "Table.gam"
-#define TEMP_NET_TABLE "Tablr.tmp"
 
 // Notes:	Pagelocks are for keeping track of what pages are locked by which users
 //			Tracklocks are for keeping track of what pages the local user is working on or has locked
@@ -97,14 +96,10 @@ void mng_PushAddonPage(int pagetype, char *name, int overlay);
 // Loads and allocs all pages found locally
 void mng_LoadAddonPages();
 
-// signifies whether or not the network is up
-extern int Network_up, Stand_alone;
-
 // Starting editor?
 extern int Starting_editor, Loading_locals, Loading_addon_table;
 
 extern char LocalD3Dir[];
-extern char NetD3Dir[];
 extern char TableFilename[];
 extern std::filesystem::path TableLockFilename;
 extern char LocalTableFilename[];
@@ -113,19 +108,12 @@ extern char LocalLevelsDir[];
 extern std::filesystem::path ManageGraphicsDir;
 extern std::filesystem::path LocalManageGraphicsDir;
 extern std::filesystem::path LocalModelsDir;
-extern std::filesystem::path NetModelsDir;
 extern std::filesystem::path LocalSoundsDir;
-extern std::filesystem::path NetSoundsDir;
 extern std::filesystem::path LocalRoomsDir;
-extern std::filesystem::path NetRoomsDir;
 extern std::filesystem::path LocalTableDir;
-extern std::filesystem::path NetMiscDir;
 extern std::filesystem::path LocalMiscDir;
-extern std::filesystem::path NetMusicDir;
 extern std::filesystem::path LocalMusicDir;
-extern char NetScriptDir[];
 extern char LocalScriptDir[];
-extern std::filesystem::path NetArtDir;
 extern std::filesystem::path LocalArtDir;
 
 extern char LocalCustomGraphicsDir[];
@@ -147,15 +135,12 @@ int mng_InitTableFiles();
 int mng_LoadTableFiles(int show_progress);
 
 int mng_InitLocalTables();
-int mng_InitNetTables();
 
 // Checks to see if there is a table file...if not, create one with a dummy page
 void mng_CheckToCreateLocalTables();
-void mng_CheckToCreateNetTables();
 
 // Creates directories if needed
 void mng_InitLocalDirectories();
-void mng_InitNetDirectories();
 
 void mng_ReadDummyPage(CFILE *infile, uint8_t pagetype);
 void mng_ReadWriteDummyPage(CFILE *infile, CFILE *outfile, uint8_t pagetype);

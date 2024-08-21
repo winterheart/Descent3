@@ -201,24 +201,7 @@ void mng_InitPagelocks() {
   CFILE *infile = nullptr, *outfile = nullptr;
   mngs_Pagelock testlock;
 
-  if (!Network_up)
-    return;
-
-  infile = (CFILE *)cfopen(TableLockFilename, "rb");
-  if (infile == NULL) {
-    outfile = (CFILE *)cfopen(TableLockFilename, "wb");
-    if (!outfile) {
-      Error("Error creating table lock file!");
-      return;
-    }
-    testlock.pagetype = PAGETYPE_UNKNOWN;
-    strcpy(testlock.name, "DUMMY PAGE");
-    strcpy(testlock.holder, "NOT HELD AT ALL");
-    mng_WritePagelock(outfile, &testlock);
-
-    cfclose(outfile);
-  } else
-    cfclose(infile);
+  return;
 }
 
 // Checks to see if the locker file is present.
@@ -227,8 +210,6 @@ char *mng_CheckIfLockerPresent() {
   CFILE *infile;
   int i = 0;
   static char lockname[200];
-
-  ASSERT(Network_up);
 
   infile = (CFILE *)cfopen(LockerFile, "rb");
   if (!infile)
@@ -275,10 +256,8 @@ int mng_MakeLocker() {
 
   len = strlen(TableUser);
 #ifndef RELEASE
-  if (!Network_up) {
-    OutrageMessageBox("Error: You are not connected to the network.");
-    return 0;
-  }
+  OutrageMessageBox("Error: You are not connected to the network.");
+  return 0;
 
   // See if someone else has the file locked
   do {
@@ -364,42 +343,7 @@ int mng_CheckIfPageLocked(mngs_Pagelock *pl) {
   mngs_Pagelock testlock;
   int r = -1, done = 0;
 
-  if (!Network_up)
-    return 1;
-
-  infile = (CFILE *)cfopen(TableLockFilename, "rb");
-  if (infile == NULL) {
-    strcpy(ErrorString, "There was a problem opening the table lock file for reading.");
-    return -1;
-  }
-
-  while (!done) {
-    r = mng_ReadPagelock(infile, &testlock);
-    if (r == 0) {
-      done = 1;
-      r = 2;
-    } else {
-      if (!stricmp(pl->name, testlock.name)) {
-        int test = 0;
-        if (pl->pagetype == testlock.pagetype) {
-          if (!stricmp(testlock.holder, "UNLOCKED"))
-            r = 0;
-          else {
-            snprintf(InfoString, sizeof(InfoString), "User %s already has this page locked.", testlock.holder);
-            if (!stricmp(testlock.holder, TableUser))
-              r = 0;
-            else
-              r = 1;
-          }
-          strcpy(pl->holder, testlock.holder);
-          done = 1;
-        }
-      }
-    }
-  }
-
-  cfclose(infile);
-  return r;
+  return 1;
 }
 
 int mng_CheckIfPageOwned(mngs_Pagelock *pl, char *owner) {
@@ -529,23 +473,6 @@ int mng_ReplacePagelock(char *name, mngs_Pagelock *pl) {
     Int3();
     return 0;
   }
-
-// Log this change
-#ifndef RELEASE
-  std::filesystem::path pathstr = std::filesystem::path(NetD3Dir) / "TableLog";
-  FILE *logfile = fopen(pathstr.u8string().c_str(), "at");
-  if (logfile) {
-    char str[255 + 32];
-    char date[255];
-    time_t t;
-    t = time(NULL);
-    strftime(date, 254, "[%a %m/%d/%y %H:%M:%S]", localtime(&t));
-    snprintf(str, sizeof(str), "%s Page %s (%s) last touched by %s\n", date, name, PageNames[pl->pagetype], TableUser);
-    fwrite(str, 1, strlen(str), logfile);
-    fflush(logfile);
-    fclose(logfile);
-  }
-#endif
 
   return 1; // successful!
 }

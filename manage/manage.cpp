@@ -476,19 +476,18 @@ std::filesystem::path TableLockFilename;
 char TableFilename[TABLE_NAME_LEN];
 char TempTableLockFilename[TABLE_NAME_LEN], TempTableFilename[TABLE_NAME_LEN];
 char LocalTableFilename[TABLE_NAME_LEN], LocalTempTableFilename[TABLE_NAME_LEN];
-char BackupTableFilename[TABLE_NAME_LEN], BackupLockFilename[TABLE_NAME_LEN];
 std::filesystem::path ManageGraphicsDir, LocalManageGraphicsDir;
-std::filesystem::path LocalModelsDir, NetModelsDir;
-std::filesystem::path LocalSoundsDir, NetSoundsDir;
-std::filesystem::path LocalRoomsDir, NetRoomsDir;
-std::filesystem::path LocalBriefingDir, NetBriefingDir;
-char LocalScriptDir[TABLE_NAME_LEN], NetScriptDir[TABLE_NAME_LEN];
-std::filesystem::path LocalMiscDir, NetMiscDir;
-std::filesystem::path LocalArtDir, NetArtDir;
-std::filesystem::path LocalMusicDir, NetMusicDir;
-std::filesystem::path LocalVoiceDir, NetVoiceDir;
-std::filesystem::path NetTableDir, LocalTableDir;
-char LocalD3Dir[TABLE_NAME_LEN], NetD3Dir[TABLE_NAME_LEN];
+std::filesystem::path LocalModelsDir;
+std::filesystem::path LocalSoundsDir;
+std::filesystem::path LocalRoomsDir;
+std::filesystem::path LocalBriefingDir;
+char LocalScriptDir[TABLE_NAME_LEN];
+std::filesystem::path LocalMiscDir;
+std::filesystem::path LocalArtDir;
+std::filesystem::path LocalMusicDir;
+std::filesystem::path LocalVoiceDir;
+std::filesystem::path LocalTableDir;
+char LocalD3Dir[TABLE_NAME_LEN];
 char LocalCustomGraphicsDir[TABLE_NAME_LEN];
 char LocalCustomSoundsDir[TABLE_NAME_LEN];
 std::filesystem::path LockerFile;
@@ -522,43 +521,8 @@ int Num_old_files = 0;
 old_file *OldFiles;
 const char *PageNames[] = {"Unknown",     "Texture", "Weapon",   "Robot", "Powerup",        "Door",
                            "Player ship", "Sound",   "Megacell", "Files", "Generic objects"};
-#ifndef RELEASE
-int Network_up = 1;
-int Stand_alone = 0;
-#else
-int Network_up = 0;
-int Stand_alone = 1;
-#endif
 void mng_BackupTableFile();
 
-// returns 1 if network is up, 0 if down
-int mng_IsNetworkUp() {
-  char dir[100];
-  if (Stand_alone)
-    return 0;
-
-  char net_dir[255] = {0};
-  int dirlen = 255;
-  Database->read("net directory", net_dir, &dirlen);
-  if (net_dir[0] == 0)
-    return 0;
-  ddio_MakePath(dir, net_dir, "data", NULL);
-
-  std::error_code ec;
-  std::filesystem::create_directories(dir, ec);
-  if (!ec) {
-    char old_dir[100];
-    ddio_GetWorkingDir(old_dir, 100);
-    if (!ddio_SetWorkingDir(dir))
-      return 0; // network down
-    else {
-      ddio_SetWorkingDir(old_dir); // restore directory
-      return 1;                    // directory is already there
-    }
-  }
-
-  return 1;
-}
 void ReorderPages(int);
 // #define JASONS_REORDERING
 void Read256TextureNames();
@@ -574,95 +538,24 @@ int mng_InitTableFiles() {
 
   if (FindArg("-oldmethod"))
     Use_old_update_method = true;
-  if (mng_IsNetworkUp()) {
-#ifndef RELEASE
-    answer = OutrageMessageBox(MBOX_YESNO, "Do you wish to update your data files from the network?\n(If NO is "
-                                           "selected then you will have to restart to use networking functions)");
-#else
-    answer = IDNO;
-#endif
-    if (answer == IDNO)
-      Network_up = 0;
-    else {
-      Network_up = 1;
-#ifndef RELEASE
-#if defined(WIN32)
-      if (cfexist("c:\\edload"))
-        Use_old_update_method = true;
-      else {
-        CFILE *fp = cfopen("c:\\edload", "wt");
-        cfclose(fp);
-      }
-#endif
-#endif
-    }
-  } else {
-    LOG_WARNING << "Network is down...";
-    Network_up = 0;
-  }
 
-  if (Network_up == 0) {
-    mng_InitLocalTables();
-    mng_InitLocalDirectories();
-    mng_CheckToCreateLocalTables();
-    mng_InitTrackLocks();
-  } else {
-    // Do locals
-    mng_InitLocalTables();
-    mng_InitLocalDirectories();
-    mng_CheckToCreateLocalTables();
+  mng_InitLocalTables();
+  mng_InitLocalDirectories();
+  mng_CheckToCreateLocalTables();
+  mng_InitTrackLocks();
 
-    // Do network
-    mng_InitNetTables();
-    mng_InitNetDirectories();
-    mng_CheckToCreateNetTables();
-    mng_BackupTableFile();
-    mng_InitPagelocks();
-    mng_InitTrackLocks();
-#ifdef JASONS_REORDERING
-    ReorderPages(0);
-    return 0;
-#endif
-  }
   return 1;
 }
 // Loads our tables
 int mng_LoadTableFiles(int show_progress) {
-  if (Network_up) {
-    LockList = mem_rmalloc<mngs_Pagelock>(MAX_LOCKLIST_ELEMENTS);
-    Num_locklist = mng_GetListOfLocks(LockList, MAX_LOCKLIST_ELEMENTS, TableUser);
-    OldFiles = mem_rmalloc<old_file>(MAX_OLDFILE_ELEMENTS);
-    Num_old_files = 0;
-    ASSERT(OldFiles);
-#if defined(WIN32)
-    if (TableTimeThreshold.dwHighDateTime != -1)
-      BuildOldFileList(TableTimeThreshold);
-#endif
-
-    Starting_editor = 1;
-  }
   int ret1, ret2;
-  if (Fast_load_trick && !FindArg("-filter"))
-    Network_up = 0;
 
   ret1 = mng_LoadNetPages(show_progress);
   if (Fast_load_trick) {
-    Network_up = 1;
     Fast_load_trick = 0;
   }
   ret2 = mng_LoadLocalPages();
-  if (Network_up) {
-    Starting_editor = 0;
-    Num_locklist = 0;
-    Num_old_files = 0;
-    mem_free(OldFiles);
-    mem_free(LockList);
-#ifndef RELEASE
-#if defined(WIN32)
-    remove("c:\\edload");
-#endif
-#endif
-  }
+
   RemapEverything();
 
   if (!ret1 || !ret2)
@@ -711,103 +604,19 @@ int mng_InitLocalTables() {
   cf_SetSearchPath(LocalVoiceDir);
 #endif
 
-  if (Network_up) {
-    ddio_MakePath(LocalTableFilename, LocalTableDir.u8string().c_str(), LOCAL_TABLE, NULL);
-    ddio_MakePath(LocalTempTableFilename, LocalTableDir.u8string().c_str(), TEMP_LOCAL_TABLE, NULL);
-  } else {
-    strcpy(LocalTableFilename, LOCAL_TABLE);
-    strcpy(LocalTempTableFilename, TEMP_LOCAL_TABLE);
-  }
+  strcpy(LocalTableFilename, LOCAL_TABLE);
+  strcpy(LocalTempTableFilename, TEMP_LOCAL_TABLE);
 
   return 1;
 }
-int mng_InitNetTables() {
-  char dir[255];
-  int dirlen = 255;
-  Database->read("net directory", dir, &dirlen);
-  if (dir[0] == 0)
-    Error("D3_DIR environment variable not set.");
 
-  strcpy(NetD3Dir, dir);
-  LOG_INFO << "Net dir: " << NetD3Dir;
-  // TODO: temp variable until NetD3Dir will be std::fs::path
-  std::filesystem::path netdir = std::filesystem::path(NetD3Dir);
-
-  NetModelsDir = netdir / "data" / "models";
-  NetSoundsDir = netdir / "data" / "sounds";
-  NetRoomsDir = netdir / "data" / "rooms";
-  NetBriefingDir = netdir / "data" / "briefings";
-  ddio_MakePath(NetScriptDir, NetD3Dir, "data", "scripts", NULL);
-  NetMiscDir = netdir / "data" / "misc";
-  ManageGraphicsDir = netdir / "data" / "graphics";
-  NetTableDir = netdir / "data" / "tables";
-  NetArtDir = netdir / "data" / "art";
-  NetMusicDir = netdir / "data" / "music";
-  NetVoiceDir = netdir / "data" / "voice";
-  TableLockFilename = NetTableDir / "table.lok";
-  ddio_MakePath(BackupLockFilename, NetTableDir.u8string().c_str(), "tablelok.bak", NULL);
-  ddio_MakePath(BackupTableFilename, NetTableDir.u8string().c_str(), "table.bak", NULL);
-  ddio_MakePath(TableFilename, NetTableDir.u8string().c_str(), NET_TABLE, NULL);
-  ddio_MakePath(TempTableLockFilename, NetTableDir.u8string().c_str(), "lock.tmp", NULL);
-  ddio_MakePath(TempTableFilename, NetTableDir.u8string().c_str(), TEMP_NET_TABLE, NULL);
-  LockerFile = NetTableDir / "locker";
-  VersionFile = NetTableDir / "TableVersion";
-
-  cf_SetSearchPath(ManageGraphicsDir);
-  cf_SetSearchPath(NetModelsDir);
-  cf_SetSearchPath(NetSoundsDir);
-  cf_SetSearchPath(NetRoomsDir);
-  cf_SetSearchPath(NetMiscDir);
-  cf_SetSearchPath(NetMusicDir);
-  cf_SetSearchPath(NetVoiceDir);
-  return 1;
-}
-void mng_CheckToCreateNetTables() {
-  CFILE *infile, *outfile;
-
-  ASSERT(Stand_alone != 1);
-
-  infile = (CFILE *)cfopen(TableFilename, "rb");
-  if (infile == NULL) {
-    if (errno == ENOENT) {
-      outfile = (CFILE *)cfopen(TableFilename, "wb");
-      if (!outfile) {
-        LOG_WARNING << "Error creating table file! The network must be down...";
-        Network_up = 0;
-      } else {
-        mng_WriteNewUnknownPage(outfile);
-        cfclose(outfile);
-      }
-    } else {
-      LOG_WARNING << "Error creating table file! The network must be down...";
-      Network_up = 0;
-    }
-  }
-
-  if (infile)
-    cfclose(infile);
-}
 // Checks to see if there is a table file...if not, create one with a dummy page
 void mng_CheckToCreateLocalTables() {
-  CFILE *outfile;
-
-  if (!Network_up) {
-    strcpy(TableFilename, NET_TABLE);
-    LOG_DEBUG << "table filename = " << TableFilename;
-    return;
-  }
-
-  if (!cfexist(LocalTableFilename)) {
-    outfile = (CFILE *)cfopen(LocalTableFilename, "wb");
-    if (!outfile) {
-      Error("Error creating local table file!");
-      return;
-    } else {
-      mng_WriteNewUnknownPage(outfile);
-      cfclose(outfile);
-    }
-  }
+  strcpy(TableFilename, NET_TABLE);
+  LOG_DEBUG << "table filename = " << TableFilename;
+  return;
 }
+
 // Creates directories if needed
 void mng_InitLocalDirectories() {
   std::filesystem::path dir = LocalD3Dir;
@@ -820,42 +629,6 @@ void mng_InitLocalDirectories() {
   cf_SetSearchPath(LocalCustomGraphicsDir);
   cf_SetSearchPath(LocalCustomSoundsDir);
 
-  if (Network_up) {
-    std::filesystem::create_directories(dir / "data", ec);
-    std::filesystem::create_directories(dir / "data" / "tables", ec);
-    std::filesystem::create_directories(dir / "data" / "graphics", ec);
-    std::filesystem::create_directories(dir / "data" / "sounds", ec);
-    std::filesystem::create_directories(dir / "data" / "rooms", ec);
-    std::filesystem::create_directories(dir / "data" / "levels", ec);
-    std::filesystem::create_directories(dir / "data" / "models", ec);
-    std::filesystem::create_directories(dir / "data" / "briefings", ec);
-    std::filesystem::create_directories(dir / "data" / "scripts", ec);
-    std::filesystem::create_directories(dir / "data" / "misc", ec);
-    std::filesystem::create_directories(dir / "data" / "art", ec);
-    std::filesystem::create_directories(dir / "data" / "music", ec);
-    std::filesystem::create_directories(dir / "data" / "voice", ec);
-  }
-}
-
-void mng_InitNetDirectories() {
-  std::filesystem::path dir = NetD3Dir;
-  std::error_code ec;
-
-  if (Stand_alone)
-    return;
-  std::filesystem::create_directories(dir / "data", ec);
-  std::filesystem::create_directories(dir / "data" / "tables", ec);
-  std::filesystem::create_directories(dir / "data" / "graphics", ec);
-  std::filesystem::create_directories(dir / "data" / "sounds", ec);
-  std::filesystem::create_directories(dir / "data" / "rooms", ec);
-  std::filesystem::create_directories(dir / "data" / "levels", ec);
-  std::filesystem::create_directories(dir / "data" / "models", ec);
-  std::filesystem::create_directories(dir / "data" / "briefings", ec);
-  std::filesystem::create_directories(dir / "data" / "scripts", ec);
-  std::filesystem::create_directories(dir / "data" / "misc", ec);
-  std::filesystem::create_directories(dir / "data" / "art", ec);
-  std::filesystem::create_directories(dir / "data" / "music", ec);
-  std::filesystem::create_directories(dir / "data" / "voice", ec);
 }
 
 extern int TableVersionCurrent();
@@ -1221,18 +994,8 @@ int mng_LoadNetPages(int show_progress) {
   LOG_INFO << "Loading pages...";
   if (Dedicated_server)
     show_progress = 0; // turn off progress meter for dedicated server
-  // If the network is up we still want to read from the local table because it
-  // will allow others to start the game at the same time
-  if (Network_up) {
-    int farg = FindArg("-filter");
-    if (farg)
-      tablename = GameArgs[farg + 1];
-    else {
-      tablename = LocalTableDir / NET_TABLE;
-    }
-    infile = cfopen(tablename, "rb");
-  } else
-    infile = cfopen(TableFilename, "rb");
+
+  infile = cfopen(TableFilename, "rb");
   if (!infile) {
     LOG_ERROR.printf("Couldn't open table file (%s) to read pages!\n", TableFilename);
     Error("Cannot open table file <%s>", TableFilename);
@@ -1420,12 +1183,6 @@ int mng_LoadLocalPages() {
 // Removes a file, then renames another file to be the removed file. Get it?
 // Returns 1 on success, else 0 on fail
 int SwitcherooFiles(const char *name, char *tempname) {
-  /*// If we're changing the net table file, make a backup first!
-  if ((!stricmp (name,TableFilename)))
-  {
-          cf_CopyFile (BackupTableFilename,TableFilename);
-          cf_CopyFile (BackupLockFilename,TableLockFilename);
-  }*/
   int num_tries = 0;
   while (!ddio_DeleteFile(name) && num_tries < MAX_TRIES) {
     D3::ChronoTimer::SleepMS(100);
@@ -2975,44 +2732,6 @@ void mng_LoadAddonPages() {
   // Clear flag
   Loading_addon = false;
 }
-/*
-#define MAX_256s	200
-int Num_256s=0;
-char Texture256Names[MAX_256s][80];
-void Read256TextureNames ()
-{
-        int n=FindArg ("-File256");
-        if (!n)
-                return;
-        CFILE *infile;
-        infile=(CFILE *)cfopen (GameArgs[n+1],"rt");
-        if (!infile)
-        {
-                mprintf(0,"Couldn't open 256 file!\n");
-                return;
-        }
-
-        char curline[200];
-        int done=0;
-        while (!done)
-        {
-                if (cfeof(infile))
-                {
-                        done=1;
-                        continue;
-                }
-
-                // Read a line and parse it
-                cf_ReadString (curline,200,infile);
-                if (curline[0]==';' || curline[1]==';' || curline[0]==' ' || curline[1]==' ')
-                        continue;
-                if (!(isalnum(curline[0])))
-                        continue;
-                strcpy (Texture256Names[Num_256s],curline);
-                Num_256s++;
-        }
-        cfclose (infile);
-}*/
 
 void DataError(const char *fmt, ...) {
   // Got a data error!

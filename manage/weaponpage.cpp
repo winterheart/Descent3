@@ -1171,7 +1171,7 @@ int mng_FindSpecificWeaponPage(char *name, mngs_weapon_page *weaponpage) {
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
 
       if (farg)
@@ -1247,7 +1247,7 @@ int mng_FindSpecificWeaponPage(char *name, mngs_weapon_page *weaponpage, int off
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       std::filesystem::path tablename;
 
       int farg = FindArg("-filter");
@@ -1372,29 +1372,6 @@ int mng_AssignWeaponPageToWeapon(mngs_weapon_page *weaponpage, int n, CFILE *inf
   // copy our values
   memcpy(weaponpointer, &weaponpage->weapon_struct, sizeof(weapon));
   strcpy(weaponpointer->name, weaponpage->weapon_struct.name);
-
-  // First see if our image differs from the one on the net
-  // If it is, make a copy
-  // If it is a release version, don't do any of this
-
-#ifndef RELEASE
-  if (Network_up) {
-    std::filesystem::path str = LocalManageGraphicsDir;
-    std::filesystem::path netstr = ManageGraphicsDir;
-
-    UpdatePrimitive(str / weaponpage->hud_image_name, netstr / weaponpage->hud_image_name, weaponpage->hud_image_name,
-                    PAGETYPE_WEAPON, weaponpointer->name);
-
-    // Now copy the discharge image, depending on whether or not it is a model
-    if (!((weaponpage->weapon_struct.flags & WF_IMAGE_BITMAP) || (weaponpage->weapon_struct.flags & WF_IMAGE_VCLIP))) {
-      str = LocalModelsDir;
-      netstr = NetModelsDir;
-    }
-
-    UpdatePrimitive(str / weaponpage->fire_image_name, netstr / weaponpage->fire_image_name,
-                    weaponpage->fire_image_name, PAGETYPE_WEAPON, weaponpointer->name);
-  }
-#endif
 
   // Try and load our weapon model from the disk
 
@@ -1686,12 +1663,6 @@ void mng_LoadLocalWeaponPage(CFILE *infile) {
       strcpy(pl.name, weaponpage.weapon_struct.name);
       pl.pagetype = PAGETYPE_WEAPON;
 
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
       ok = 1;
       bool need_to_load_page = true;
 

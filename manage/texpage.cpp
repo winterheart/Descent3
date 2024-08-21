@@ -850,7 +850,7 @@ int mng_FindSpecificTexPage(char *name, mngs_texture_page *texpage, int offset) 
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
 
       if (farg)
@@ -941,24 +941,9 @@ int mng_AssignTexPageToTexture(mngs_texture_page *texpage, int n, CFILE *infile)
   // copy our values
   memcpy(tex, &texpage->tex_struct, sizeof(texture));
 
-// Check to see if this image differs from the one on the net
-// If so, make a local copy
-// If this is a release, don't do any of this stuff
-#ifndef RELEASE
-  if (Network_up) {
-    UpdatePrimitive(LocalManageGraphicsDir / texpage->bitmap_name, ManageGraphicsDir / texpage->bitmap_name,
-                    texpage->bitmap_name, PAGETYPE_TEXTURE, tex->name);
-  }
-#endif
-
   // Try and load our textures bitmaps from the disk
   uint8_t pageable;
   uint8_t mipped = 1;
-
-  if (Network_up)
-    pageable = 0;
-  else
-    pageable = 1;
 
   pageable = 1;
 
@@ -1150,13 +1135,6 @@ void mng_LoadLocalTexturePage(CFILE *infile) {
 
       strcpy(pl.name, texpage1.tex_struct.name);
       pl.pagetype = PAGETYPE_TEXTURE;
-
-      /*if (Network_up)
-      {
-              locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
 
       ok = 1;
       bool need_to_load_page = true;

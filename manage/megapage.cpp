@@ -313,13 +313,6 @@ void mng_LoadLocalMegacellPage(CFILE *infile) {
       strcpy(pl.name, megacellpage.megacell_struct.name);
       pl.pagetype = PAGETYPE_MEGACELL;
 
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
-
       mng_AssignMegacellPageToMegacell(&megacellpage, i);
       ok = 1;
     } else {

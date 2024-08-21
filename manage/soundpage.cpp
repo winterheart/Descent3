@@ -330,7 +330,7 @@ int mng_FindSpecificSoundPage(char *name, mngs_sound_page *soundpage, int offset
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
       if (farg)
         tablename = GameArgs[farg + 1];
@@ -402,15 +402,7 @@ int mng_AssignSoundPageToSound(mngs_sound_page *soundpage, int n) {
   // copy our values
   memcpy(soundpointer, &soundpage->sound_struct, sizeof(sound_info));
   strcpy(soundpointer->name, soundpage->sound_struct.name);
-// First see if our raw differs from the one on the net
-// If it is, make a copy
-// If it is a release version, don't do any of this
-#ifndef RELEASE
-  if (Network_up) {
-    UpdatePrimitive(LocalSoundsDir / soundpage->raw_name, NetSoundsDir / soundpage->raw_name, soundpage->raw_name,
-                    PAGETYPE_SOUND, soundpointer->name);
-  }
-#endif
+
   // Try and load our sound raw from the disk
   raw_handle = LoadSoundFile(soundpage->raw_name, Sounds[n].import_volume, false);
   if (raw_handle < 0) {
@@ -471,13 +463,6 @@ void mng_LoadLocalSoundPage(CFILE *infile) {
 
       strcpy(pl.name, soundpage.sound_struct.name);
       pl.pagetype = PAGETYPE_SOUND;
-
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
 
       ok = 1;
       bool need_to_load_page = true;

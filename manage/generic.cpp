@@ -1765,7 +1765,7 @@ int mng_FindSpecificGenericPage(char *name, mngs_generic_page *genericpage, int 
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
 
       if (farg)
@@ -1930,26 +1930,6 @@ int mng_AssignGenericPageToObjInfo(mngs_generic_page *genericpage, int n, CFILE 
   objinfopointer->multi_allowed = true;
 
   strcpy(objinfopointer->icon_name, genericpage->objinfo_struct.icon_name);
-  // First see if our image differs from the one on the net
-  // If it is, make a copy
-  // If it is a release version, don't do any of this
-
-#ifndef RELEASE
-  if (Network_up) {
-    UpdatePrimitive(LocalModelsDir / genericpage->image_name, NetModelsDir / genericpage->image_name,
-                    genericpage->image_name, PAGETYPE_GENERIC, objinfopointer->name);
-
-    if (stricmp(genericpage->med_image_name, "INVALID NAME") != 0 && genericpage->med_image_name[0] != 0) {
-      UpdatePrimitive(LocalModelsDir / genericpage->med_image_name, NetModelsDir / genericpage->med_image_name,
-                      genericpage->med_image_name, PAGETYPE_GENERIC, objinfopointer->name);
-    }
-
-    if (stricmp(genericpage->lo_image_name, "INVALID NAME") != 0 && genericpage->lo_image_name[0] != 0) {
-      UpdatePrimitive(LocalModelsDir / genericpage->lo_image_name, NetModelsDir / genericpage->lo_image_name,
-                      genericpage->lo_image_name, PAGETYPE_GENERIC, objinfopointer->name);
-    }
-  }
-#endif
 
   // Try and load our generic model from the disk
 
@@ -2240,13 +2220,6 @@ void mng_LoadLocalGenericPage(CFILE *infile) {
 
       strcpy(pl.name, genericpage.objinfo_struct.name);
       pl.pagetype = PAGETYPE_GENERIC;
-
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
 
       ok = 1;
       bool need_to_load_page = true;

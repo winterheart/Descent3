@@ -146,7 +146,6 @@ class oeD3LnxDatabase : public oeLnxAppDatabase {
 public:
   oeD3LnxDatabase() {
     char path[_MAX_PATH];
-    char netpath[_MAX_PATH];
 
     // put directories into database
 
@@ -157,20 +156,13 @@ public:
 #endif
 
     char *dir = getenv("D3_LOCAL");
-    char *netdir = getenv("D3_DIR");
 
     if (!dir)
       strcpy(path, Base_directory);
     else
       strcpy(path, dir);
 
-    if (!netdir)
-      strcpy(netpath, "");
-    else
-      strcpy(netpath, netdir);
-
     write("local directory", path, strlen(path) + 1);
-    write("net directory", netpath, strlen(netpath) + 1);
     Database = this;
   }
 };

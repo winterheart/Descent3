@@ -845,7 +845,7 @@ int mng_FindSpecificShipPage(char *name, mngs_ship_page *shippage, int offset) {
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
 
       if (farg)
@@ -937,32 +937,6 @@ int mng_AssignShipPageToShip(mngs_ship_page *shippage, int n, CFILE *infile) {
   // copy our values
   memcpy(shippointer, &shippage->ship_struct, sizeof(ship));
   strcpy(shippointer->name, shippage->ship_struct.name);
-
-  // First see if our image differs from the one on the net
-  // If it is, make a copy
-  // If it is a release version, don't do any of this
-
-#ifndef RELEASE
-  if (Network_up) {
-    UpdatePrimitive(LocalModelsDir / shippage->image_name, NetModelsDir / shippage->image_name, shippage->image_name,
-                    PAGETYPE_SHIP, shippointer->name);
-
-    if (stricmp("INVALID IMAGE NAME", shippage->dying_image_name) != 0 && shippage->dying_image_name[0] != 0) {
-      UpdatePrimitive(LocalModelsDir / shippage->dying_image_name, NetModelsDir / shippage->dying_image_name,
-                      shippage->dying_image_name, PAGETYPE_SHIP, shippointer->name);
-    }
-
-    if (shippage->med_image_name[0] != 0) {
-      UpdatePrimitive(LocalModelsDir / shippage->med_image_name, NetModelsDir / shippage->med_image_name,
-                      shippage->med_image_name, PAGETYPE_SHIP, shippointer->name);
-    }
-
-    if (shippage->lo_image_name[0] != 0) {
-      UpdatePrimitive(LocalModelsDir / shippage->lo_image_name, NetModelsDir / shippage->lo_image_name,
-                      shippage->lo_image_name, PAGETYPE_SHIP, shippointer->name);
-    }
-  }
-#endif
 
   // Try and load our ship model from the disk
 
@@ -1202,12 +1176,6 @@ void mng_LoadLocalShipPage(CFILE *infile) {
       strcpy(pl.name, shippage.ship_struct.name);
       pl.pagetype = PAGETYPE_SHIP;
 
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
       ok = 1;
       bool need_to_load_page = true;
 

@@ -375,7 +375,7 @@ int mng_FindSpecificDoorPage(char *name, mngs_door_page *doorpage, int offset) {
   } else if (Loading_addon_table != -1) {
     infile = cfopen(AddOnDataTables[Loading_addon_table].AddOnTableFilename, "rb");
   } else {
-    if (Network_up && Starting_editor) {
+    if (Starting_editor) {
       int farg = FindArg("-filter");
 
       if (farg)
@@ -457,17 +457,6 @@ int mng_AssignDoorPageToDoor(mngs_door_page *doorpage, int n) {
   // copy our values
   memcpy(doorpointer, &doorpage->door_struct, sizeof(door));
   strcpy(doorpointer->name, doorpage->door_struct.name);
-
-  // First see if our image differs from the one on the net
-  // If it is, make a copy
-  // If it is a release version, don't do any of this
-
-#ifndef RELEASE
-  if (Network_up) {
-    UpdatePrimitive(LocalModelsDir / doorpage->image_name, NetModelsDir / doorpage->image_name, doorpage->image_name,
-                    PAGETYPE_DOOR, doorpointer->name);
-  }
-#endif
 
   // Try and load our door model from the disk
 
@@ -555,14 +544,6 @@ void mng_LoadLocalDoorPage(CFILE *infile) {
 
       strcpy(pl.name, doorpage.door_struct.name);
       pl.pagetype = PAGETYPE_DOOR;
-
-      /*if (Network_up && Stand_alone==0)
-      {
-              int locked;
-              locked=mng_CheckIfPageOwned(&pl,TableUser);
-              if (locked!=1)
-                      Int3(); // Your local vs net copies of the lock file do not match
-      }*/
 
       ok = 1;
       bool need_to_load_page = true;
