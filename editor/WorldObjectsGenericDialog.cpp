@@ -793,6 +793,7 @@ void CWorldObjectsGenericDialog::OnGenericCheckIn() {
       mng_EraseLocker();
       return;
     } else {
+#if 0
       // Now actually replace the copy on the net with our local one
 
       if (!mng_ReplacePage(Object_info[m_current].name, Object_info[m_current].name, m_current, PAGETYPE_GENERIC, 0))
@@ -830,6 +831,7 @@ void CWorldObjectsGenericDialog::OnGenericCheckIn() {
         mng_FreeTrackLock(p);
         UpdateDialog();
       }
+#endif
     }
   }
 

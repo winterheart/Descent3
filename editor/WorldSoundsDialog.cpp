@@ -299,6 +299,7 @@ void CWorldSoundsDialog::OnCheckinSound() {
       if (!mng_ReplacePage(Sounds[n].name, Sounds[n].name, n, PAGETYPE_SOUND, 0))
         OutrageMessageBox(ErrorString);
       else {
+#if 0
         // Save this sound raw to the network for all
 
         std::filesystem::path srcname = LocalSoundsDir / SoundFiles[Sounds[n].sample_index].name;
@@ -318,6 +319,7 @@ void CWorldSoundsDialog::OnCheckinSound() {
         ASSERT(p != -1);
         mng_FreeTrackLock(p);
         UpdateDialog();
+#endif
       }
     }
   }

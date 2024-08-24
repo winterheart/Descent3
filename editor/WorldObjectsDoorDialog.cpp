@@ -535,6 +535,7 @@ void CWorldObjectsDoorDialog::OnCheckinDoor() {
       mng_EraseLocker();
       return;
     } else {
+#if 0
       // Now actually replace the copy on the net with our local one
 
       if (!mng_ReplacePage(Doors[n].name, Doors[n].name, n, PAGETYPE_DOOR, 0))
@@ -560,6 +561,7 @@ void CWorldObjectsDoorDialog::OnCheckinDoor() {
         mng_FreeTrackLock(p);
         UpdateDialog();
       }
+#endif
     }
   }
 

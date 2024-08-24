@@ -291,6 +291,7 @@ void CWorldObjectsPlayerDialog::OnPshipCheckin() {
       if (!mng_ReplacePage(Ships[n].name, Ships[n].name, n, PAGETYPE_SHIP, 0))
         OutrageMessageBox(ErrorString);
       else {
+#if 0
         // Save this ship anim/model to the network for all
         std::filesystem::path srcname = LocalModelsDir / Poly_models[Ships[n].model_handle].name;
         std::filesystem::path destname = NetModelsDir / Poly_models[Ships[n].model_handle].name;
@@ -337,6 +338,7 @@ void CWorldObjectsPlayerDialog::OnPshipCheckin() {
         ASSERT(p != -1);
         mng_FreeTrackLock(p);
         UpdateDialog();
+#endif
       }
     }
   }

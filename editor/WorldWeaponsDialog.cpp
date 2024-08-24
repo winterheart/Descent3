@@ -661,6 +661,7 @@ void CWorldWeaponsDialog::OnCheckinWeapon() {
       if (!mng_ReplacePage(Weapons[n].name, Weapons[n].name, n, PAGETYPE_WEAPON, 0))
         OutrageMessageBox(ErrorString);
       else {
+#if 0
         // Save this weapon anim/image to the network for all
         std::filesystem::path srcname, destname;
         if (Weapons[n].flags & WF_HUD_ANIMATED) {
@@ -699,6 +700,7 @@ void CWorldWeaponsDialog::OnCheckinWeapon() {
         ASSERT(p != -1);
         mng_FreeTrackLock(p);
         UpdateDialog();
+#endif
       }
     }
   }

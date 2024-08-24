@@ -260,6 +260,7 @@ void CFilePageDialog::OnCheckinFile() {
         if (!mng_ReplacePage(Gamefiles[n].name, Gamefiles[n].name, n, PAGETYPE_GAMEFILE, 0))
           OutrageMessageBox(ErrorString);
         else {
+#if 0
           // Save this gamefile file to the network for all
 
           char destname[100], srcname[100];
@@ -279,6 +280,7 @@ void CFilePageDialog::OnCheckinFile() {
           int p = mng_FindTrackLock(Gamefiles[n].name, PAGETYPE_GAMEFILE);
           ASSERT(p != -1);
           mng_FreeTrackLock(p);
+#endif
         }
       }
     }

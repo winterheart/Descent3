@@ -456,6 +456,7 @@ void CScriptWizard::OnUnlock() {
       if (!mng_ReplacePage(Gamefiles[n].name, Gamefiles[n].name, n, PAGETYPE_GAMEFILE, 0))
         OutrageMessageBox(ErrorString);
       else {
+#if 0
         // Save this gamefile file to the network for all
         // Force the save of the current script file so this actually works
         char destname[100], srcname[100];
@@ -479,6 +480,7 @@ void CScriptWizard::OnUnlock() {
         ASSERT(p != -1);
         mng_FreeTrackLock(p);
         UpdateDialogButtons();
+#endif
       }
     }
   }

@@ -1085,6 +1085,7 @@ bool CheckInGamefile(char *tempbuffer, bool show_ok_confirmation) {
       if (!mng_ReplacePage(Gamefiles[n].name, Gamefiles[n].name, n, PAGETYPE_GAMEFILE, 0))
         OutrageMessageBox(ErrorString);
       else {
+#if 0
         // Save this gamefile file to the network for all
 
         char destname[100], srcname[100];
@@ -1111,6 +1112,7 @@ bool CheckInGamefile(char *tempbuffer, bool show_ok_confirmation) {
           ASSERT(1);                      // Get Jason! File didn't check in correctly!
           cf_CopyFile(destname, srcname); // Do this so we can trace whats happening
         }
+#endif
       }
     }
   }

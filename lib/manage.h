@@ -96,6 +96,8 @@ void mng_PushAddonPage(int pagetype, char *name, int overlay);
 // Loads and allocs all pages found locally
 void mng_LoadAddonPages();
 
+extern int Network_up;
+
 // Starting editor?
 extern int Starting_editor, Loading_locals, Loading_addon_table;
 

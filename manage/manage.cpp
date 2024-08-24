@@ -508,10 +508,10 @@ int Num_locklist, Starting_editor = 0, Loading_locals = 0, Fast_load_trick = 0;
 #define PRIMTYPE_FILE 4
 #if defined(WIN32)
 FILETIME TableTimeThreshold;
-// Builds a list of old files so we know which ones to update
-// Searches through all our netdirectories for old files
-void BuildOldFileList(FILETIME threshold);
 #endif
+
+int Network_up = 1;
+
 struct old_file {
   uint8_t type;
   char name[PAGENAME_LEN];
@@ -1626,68 +1626,6 @@ int GetPrimType(const std::filesystem::path &name) {
     primtype = PRIMTYPE_FILE;
   return primtype;
 }
-
-#if defined(WIN32)
-// Builds a list of old files in a path
-void BuildOldFilesForDirectory(const std::filesystem::path& path, FILETIME threshold) {
-  HANDLE filehandle;
-  WIN32_FIND_DATA filedata;
-  std::filesystem::path newpath = path / "*.*";
-  filehandle = FindFirstFile(newpath.u8string().c_str(), &filedata);
-  bool go_ahead = true;
-  if (filehandle == INVALID_HANDLE_VALUE)
-    go_ahead = false;
-  while (go_ahead) {
-    bool add_it = false;
-
-    //	if this file is newer than the last time we updated, add it to the list
-
-    if (filedata.ftLastWriteTime.dwHighDateTime > threshold.dwHighDateTime)
-      add_it = true;
-    if (filedata.ftLastWriteTime.dwHighDateTime == threshold.dwHighDateTime) {
-      if (filedata.ftLastWriteTime.dwLowDateTime > threshold.dwLowDateTime)
-        add_it = true;
-    }
-    if (filedata.ftCreationTime.dwHighDateTime > threshold.dwHighDateTime)
-      add_it = true;
-    if (filedata.ftCreationTime.dwHighDateTime == threshold.dwHighDateTime) {
-      if (filedata.ftCreationTime.dwLowDateTime > threshold.dwLowDateTime)
-        add_it = true;
-    }
-    // Add it to the list!
-    if (add_it) {
-      int primtype = GetPrimType(filedata.cFileName);
-      OldFiles[Num_old_files].type = primtype;
-      strcpy(OldFiles[Num_old_files].name, filedata.cFileName);
-      Num_old_files++;
-    }
-    go_ahead = (FindNextFile(filehandle, &filedata) != 0);
-  }
-  if (filehandle != INVALID_HANDLE_VALUE)
-    FindClose(filehandle);
-}
-
-// Builds a list of old files so we know which ones to update
-// Searches through all our netdirectories for old files
-void BuildOldFileList(FILETIME threshold) {
-  char str[_MAX_PATH];
-  LOG_INFO << "Building old files list!";
-  BuildOldFilesForDirectory(NetModelsDir, threshold);
-  BuildOldFilesForDirectory(NetSoundsDir, threshold);
-  BuildOldFilesForDirectory(NetMiscDir, threshold);
-  BuildOldFilesForDirectory(ManageGraphicsDir, threshold);
-  BuildOldFilesForDirectory(NetArtDir, threshold);
-  BuildOldFilesForDirectory(NetMusicDir, threshold);
-  BuildOldFilesForDirectory(NetVoiceDir, threshold);
-  ddio_MakePath(str, NetD3Dir, "data", "levels", NULL);
-  BuildOldFilesForDirectory(str, threshold);
-  ddio_MakePath(str, NetD3Dir, "data", "briefings", NULL);
-  BuildOldFilesForDirectory(str, threshold);
-  ddio_MakePath(str, NetD3Dir, "data", "scripts", NULL);
-  BuildOldFilesForDirectory(str, threshold);
-  LOG_INFO.printf("Found %d old files.", Num_old_files);
-}
-#endif
 
 // Returns true if the passed in primitive is old (ie needs to be updated from the network)
 bool IsPrimitiveOld(char *name) {
