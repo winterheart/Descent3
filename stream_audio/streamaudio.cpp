@@ -920,12 +920,12 @@ void StreamVolume(float master_volume) {
   User_audio_stream.SetVolume(Stream_volume * master_volume);
 }
 //	these functions are the 'simplified' stream interface from Jeff (most of this code is from Jeff)
-int StreamPlay(const char *filename, float volume, int flags) {
+int StreamPlay(const std::filesystem::path &filename, float volume, int flags) {
   int retval = -1;
   try {
     flags = 0;
     User_audio_stream.Close();
-    User_audio_stream.Open(filename, STRM_OPNF_ONETIME);
+    User_audio_stream.Open(filename.u8string().c_str(), STRM_OPNF_ONETIME);
     Stream_volume = volume;
     User_audio_stream.SetVolume(Stream_volume * Stream_master_volume);
     User_audio_stream.Play(true); // start this stream on the next frame.

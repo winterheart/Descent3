@@ -138,12 +138,14 @@
 #ifndef __STREAMAUDIO_H_
 #define __STREAMAUDIO_H_
 
+#include <filesystem>
+
 #include "adecode.h"
 #include "ssl_lib.h"
 
 void *AudioStreamCB(void *user_data, int handle, int *size);
 int ADecodeFileRead(void *data, void *buf, uint32_t qty);
-int StreamPlay(const char *filename, float volume, int flags);
+int StreamPlay(const std::filesystem::path &filename, float volume, int flags);
 void StreamStop(int handle);
 int StreamGetSoundHandle(int handle);
 
@@ -334,7 +336,7 @@ public:
     return m_llshandle;
   };
   //	these functions are the 'simplified' stream interface from Jeff (most of this code is from Jeff)
-  friend int StreamPlay(const char *filename, float volume, int flags);
+  friend int StreamPlay(const std::filesystem::path &filename, float volume, int flags);
   friend void StreamStop(int handle);
   friend int StreamGetSoundHandle(int handle);
 };

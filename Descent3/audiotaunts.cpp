@@ -92,11 +92,11 @@ void taunt_SetDelayTime(float t) { Audio_taunt_delay_time = t; }
 //	taunt_PlayTauntFile
 //
 //	Given a path to an .osf file, it will play it
-bool taunt_PlayTauntFile(const char *filename) {
+bool taunt_PlayTauntFile(const std::filesystem::path &filename) {
   if (!Audio_taunts_enabled)
     return false;
 
-  int ret = StreamPlay(filename, (MAX_GAME_VOLUME / 2.0f), 0);
+  StreamPlay(filename, (MAX_GAME_VOLUME / 2.0f), 0);
   return true;
 }
 
@@ -113,7 +113,7 @@ bool taunt_PlayPlayerTaunt(int pnum, int index) {
   }
 
   if ((NetPlayers[pnum].flags & NPF_CONNECTED) && (NetPlayers[pnum].sequence == NETSEQ_PLAYING)) {
-    char fullpath[_MAX_PATH];
+    std::filesystem::path fullpath;
     char *file;
     switch (index) {
     case 0:
@@ -130,10 +130,10 @@ bool taunt_PlayPlayerTaunt(int pnum, int index) {
       break;
     }
 
-    ddio_MakePath(fullpath, LocalCustomSoundsDir, file, NULL);
+    fullpath = LocalCustomSoundsDir / file;
 
     if (!cfexist(fullpath)) {
-      LOG_WARNING.printf("TAUNT: file %s doesn't exist (pnum=%d)", fullpath, pnum);
+      LOG_WARNING.printf("TAUNT: file %s doesn't exist (pnum=%d)", fullpath.u8string().c_str(), pnum);
       return false;
     }
 

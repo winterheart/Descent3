@@ -2528,7 +2528,7 @@ bool PltSelectShip(pilot *Pilot) {
             FreeVClip(handle);
             break;
           }
-          std::filesystem::path newf = std::filesystem::path(LocalCustomGraphicsDir) / tempf.filename().replace_extension(".oaf");
+          std::filesystem::path newf = LocalCustomGraphicsDir / tempf.filename().replace_extension(".oaf");
 
           if (SaveVClip(newf, handle) == 0) {
             // error saving
