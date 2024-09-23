@@ -153,9 +153,6 @@ void mng_WriteUnknownPage(CFILE *outfile);
 // Lock functions
 //-----------------------------------------------
 
-// If table lock file not found, create a dummy one
-void mng_InitPagelocks();
-
 // Writes a pagelock to an open file
 void mng_WritePagelock(CFILE *fp, mngs_Pagelock *pl);
 
@@ -222,20 +219,8 @@ int mng_RenamePage(char *oldname, char *newname, int pagetype);
 // Returns 1 on success, else 0 on fail
 int SwitcherooFiles(const char *name, char *tempname);
 
-// Returns true if the passed in pagelock is in the LockList, else false
-bool InLockList(mngs_Pagelock *pl);
-
 // Takes a pagelock and sets its holder name to UNLOCKED
 void mng_OverrideToUnlocked(mngs_Pagelock *temp_pl);
-
-// Returns true if the passed in primitive is old (ie needs to be updated from the network)
-bool IsPrimitiveOld(char *name);
-
-// Updates a primitive if needed
-// Localname = local version of the primname (with path)
-// Netname = Network version of the primname (with path)
-void UpdatePrimitive(const std::filesystem::path &localname, const std::filesystem::path &netname, char *primname,
-                     int pagetype, char *pagename);
 
 // Writes a chunk header.  Writes chunk id & placeholder length.  Returns chunk start pos
 int StartManagePage(CFILE *ofile, uint8_t pagetype);

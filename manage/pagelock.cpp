@@ -195,15 +195,6 @@
 #define CURRENT_TABLE_VERSION 22
 extern const char *PageNames[];
 
-void mng_InitPagelocks() {
-  // If there is not a pagelock file, create one with a dummy header.
-
-  CFILE *infile = nullptr, *outfile = nullptr;
-  mngs_Pagelock testlock;
-
-  return;
-}
-
 // Checks to see if the locker file is present.
 // Returns pointer to locker's name, or NULL if the file is unlocked
 char *mng_CheckIfLockerPresent() {

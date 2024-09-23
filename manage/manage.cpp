@@ -1595,21 +1595,7 @@ void ReorderPages(int local) {
   }
   mng_EraseLocker();
 }
-// Returns true if the passed in pagelock is in the LockList, else false
-bool InLockList(mngs_Pagelock *pl) {
-  if (Starting_editor) {
-    for (int i = 0; i < Num_locklist; i++) {
-      if (LockList[i].pagetype == pl->pagetype) {
-        if (!stricmp(LockList[i].name, pl->name))
-          return true;
-      }
-    }
-  } else {
-    if ((mng_CheckIfPageOwned(pl, TableUser)) > 0) // DAJ -1FIX
-      return true;
-  }
-  return false;
-}
+
 // Given a filename, returns the type of primitive it is
 int GetPrimType(const std::filesystem::path &name) {
   int primtype;
@@ -1627,44 +1613,6 @@ int GetPrimType(const std::filesystem::path &name) {
   return primtype;
 }
 
-// Returns true if the passed in primitive is old (ie needs to be updated from the network)
-bool IsPrimitiveOld(char *name) {
-  int primtype = GetPrimType(name);
-  for (int i = 0; i < Num_old_files; i++) {
-    if (OldFiles[i].type == primtype && !stricmp(OldFiles[i].name, name))
-      return true;
-  }
-
-  return false;
-}
-
-// Updates a primitive if needed
-// Localname = local version of the primname (with path)
-// Netname = Network version of the primname (with path)
-void UpdatePrimitive(const std::filesystem::path &localname, const std::filesystem::path &netname, char *primname,
-                     int pagetype, char *pagename) {
-  bool update = false;
-  if (Starting_editor && !Use_old_update_method) {
-    if (IsPrimitiveOld(primname))
-      update = true;
-  } else {
-    if (!cfexist(localname) || (cfexist(netname) && cf_Diff(localname, netname)))
-      update = true;
-  }
-
-  if (update) {
-    mngs_Pagelock temp_pl;
-    temp_pl.pagetype = pagetype;
-    strcpy(temp_pl.name, pagename);
-    if (!InLockList(&temp_pl)) {
-      LOG_DEBUG.printf("Making a local copy of %s for next time.", primname);
-      if (!cf_CopyFile(localname, netname, 1)) {
-        Int3(); // get Jason
-        return;
-      }
-    }
-  }
-}
 // Writes a chunk header.  Writes chunk id & placeholder length.  Returns chunk start pos
 int StartManagePage(CFILE *ofile, uint8_t pagetype) {
   int chunk_start_pos;
